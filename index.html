@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gnadenlos – CVE-2026-98432</title>
+<link rel="icon" href="gnadenlos-logo.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,600&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#FAF8FC; --ink:#1F1428; --muted:#5C5068; --accent:#5B2A86; --gold:#9A6B00;
+  --warn:#A11D2B; --panel:#F1ECF6; --line:#DCD2E5; --code-bg:#1F1428; --code-ink:#EFE7F6;
+  color-scheme:light; box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#16101C; --ink:#EFE7F6; --muted:#B3A6C0; --accent:#C9A6EC; --gold:#E2B54A;
+    --warn:#FF6B77; --panel:#221A2B; --line:#3A2E46; --code-bg:#0D0911; --code-ink:#EFE7F6;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#16101C; --ink:#EFE7F6; --muted:#B3A6C0; --accent:#C9A6EC; --gold:#E2B54A;
+  --warn:#FF6B77; --panel:#221A2B; --line:#3A2E46; --code-bg:#0D0911; --code-ink:#EFE7F6;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:1.05rem/1.65 "IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+a{color:var(--accent)}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+.wrap{max-width:44rem;margin:0 auto;padding:0 1.25rem}
+h1,h2,.serif{font-family:Newsreader,Georgia,"Times New Roman",serif;font-weight:600}
+code,pre{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;font-size:.88em}
+
+.hero{padding:3.5rem 0 2.5rem;border-bottom:1px solid var(--line)}
+.hero .wrap{display:grid;grid-template-columns:9rem 1fr;gap:1.8rem;align-items:center}
+.hero svg{width:100%;height:auto}
+.hero h1{font-size:clamp(2.6rem,8vw,4rem);line-height:1.05;margin:0;letter-spacing:.01em}
+.hero .cve{margin:.3rem 0 0;color:var(--muted)}
+.hero .tag{font-family:Newsreader,Georgia,serif;font-style:italic;font-size:1.3rem;margin:1rem 0 0}
+@media (max-width:34rem){.hero .wrap{grid-template-columns:1fr}.hero svg{width:8rem}}
+
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(9.5rem,1fr));gap:1rem;margin:2rem 0 0}
+.facts div{border-left:3px solid var(--gold);padding-left:.8rem}
+.facts b{display:block;font-family:Newsreader,Georgia,serif;font-size:1.7rem;line-height:1.2}
+.facts span{font-size:.92rem;color:var(--muted)}
+
+section{padding:2.5rem 0;border-bottom:1px solid var(--line)}
+h2{font-size:1.75rem;margin:0 0 .9rem;color:var(--accent)}
+p{margin:0 0 1rem}
+.small{font-size:.95rem;color:var(--muted)}
+pre{background:var(--code-bg);color:var(--code-ink);padding:1rem 1.1rem;border-radius:.35rem;overflow-x:auto;line-height:1.5}
+
+.checker{background:var(--panel);border:1px solid var(--line);border-radius:.4rem;padding:1.1rem}
+.checker label{display:block;font-weight:600;margin-bottom:.4rem}
+.row{display:flex;gap:.6rem;flex-wrap:wrap}
+.checker input{flex:1 1 14rem;font:inherit;padding:.55rem .7rem;border:1px solid var(--line);border-radius:.3rem;background:var(--bg);color:var(--ink)}
+button{font:inherit;font-weight:600;padding:.55rem 1rem;border-radius:.3rem;border:0;cursor:pointer;background:var(--accent);color:var(--bg)}
+#verdict{margin-top:1rem;min-height:1.5em}
+#verdict .v{font-weight:600;display:block}
+.bad{color:var(--warn)} .ok{color:var(--gold)}
+
+ol.tl{list-style:none;padding:0;margin:0;border-left:2px solid var(--line)}
+ol.tl li{position:relative;padding:0 0 1.1rem 1.3rem}
+ol.tl li::before{content:"";position:absolute;left:-.45rem;top:.5rem;width:.7rem;height:.7rem;border-radius:50%;background:var(--gold)}
+ol.tl time{display:block;font-size:.9rem;color:var(--muted)}
+
+details{border-bottom:1px solid var(--line);padding:.65rem 0}
+summary{cursor:pointer;font-weight:600}
+details p{margin:.5rem 0 0}
+footer{padding:2.2rem 0 3rem;color:var(--muted);font-size:.95rem}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <svg viewBox="0 0 400 400" role="img" aria-label="Logo: zerbrochener Heiligenschein über einem TCP-Handshake, dessen letztes ACK ins Leere läuft">
+      <defs>
+        <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFE38A"/><stop offset=".45" stop-color="#D4A21E"/><stop offset="1" stop-color="#7A5200"/></linearGradient>
+        <radialGradient id="glow" cx=".5" cy=".42" r=".55"><stop offset="0" stop-color="#7B2FB0" stop-opacity=".9"/><stop offset="1" stop-color="#2A0B40"/></radialGradient>
+      </defs>
+      <circle cx="200" cy="200" r="196" fill="url(#glow)" stroke="url(#gold)" stroke-width="8"/>
+      <g transform="rotate(-14 200 130)">
+        <path d="M118 132 A82 26 0 0 1 192 106" fill="none" stroke="url(#gold)" stroke-width="15" stroke-linecap="round"/>
+        <path d="M208 106 A82 26 0 0 1 282 132 A82 26 0 0 1 225 157" fill="none" stroke="url(#gold)" stroke-width="15" stroke-linecap="round"/>
+        <path d="M196 158 A82 26 0 0 1 118 132" fill="none" stroke="url(#gold)" stroke-width="15" stroke-linecap="round" stroke-dasharray="6 13" opacity=".55"/>
+      </g>
+      <g stroke-width="7" stroke-linecap="round" fill="none">
+        <path d="M110 215 H280" stroke="#F3E6FF"/><path d="M268 203 L284 215 L268 227" stroke="#F3E6FF"/>
+        <path d="M290 255 H120" stroke="#F3E6FF"/><path d="M132 243 L116 255 L132 267" stroke="#F3E6FF"/>
+        <path d="M110 295 H280" stroke="#E0394A" stroke-dasharray="14 12"/><path d="M268 283 L284 295 L268 307" stroke="#E0394A"/>
+      </g>
+    </svg>
+    <div>
+      <h1>Gnadenlos</h1>
+      <p class="cve">CVE-2026-98432 · Linux-Kernel, IPv4 TCP</p>
+      <p class="tag">Keine Grace-Period, keine Gnade.</p>
+    </div>
+  </div>
+  <div class="wrap facts">
+    <div><b>9.8</b><span>CVSS 3.1 im CVE-Record</span></div>
+    <div><b>5.9</b><span>CVSS nach Red Hat</span></div>
+    <div><b>seit 4.4</b><span>im Kernel enthalten</span></div>
+  </div>
+</header>
+
+<main class="wrap">
+
+<section id="was">
+  <h2>Worum es geht</h2>
+  <p>Im IPv4-TCP-Handshake gibt der Kernel die IP-Optionen einer Request-Socket (<code>inet_opt</code>, <code>ireq_opt</code>) frei, ohne das Ende der RCU-Grace-Period abzuwarten. Laufen SYN-ACK-Retransmit und die Migration der Request-Socket parallel, kann ein Codepfad auf bereits freigegebenen Speicher zugreifen.</p>
+  <p>Auslösbar über das Netzwerk, ohne Authentifizierung. Die Folge ist mindestens ein Kernel-Crash; unter bestimmten Bedingungen wurde Codeausführung mit Root-Rechten demonstriert.</p>
+  <p class="small">Normale IPv6-Verbindungen sind nicht auf dieselbe Weise betroffen. Für einen verwandten IPv6-Sonderfall ist ein separater Fix angekündigt.</p>
+</section>
+
+<section id="pruefen">
+  <h2>Bin ich betroffen?</h2>
+  <p>Upstream behoben in 6.12.113, 6.18.56, 7.2.10 und 7.3-rc7.</p>
+  <div class="checker">
+    <label for="kv">Ausgabe von <code>uname -r</code></label>
+    <div class="row">
+      <input id="kv" placeholder="z. B. 6.12.110-amd64" autocomplete="off" spellcheck="false">
+      <button id="go" type="button">Prüfen</button>
+    </div>
+    <div id="verdict" aria-live="polite"></div>
+  </div>
+  <p class="small" style="margin-top:1rem">Distributionen backporten Fixes in Kernel, deren Versionsnummer das nicht verrät. Die Prüfung oben kennt nur Upstream; verbindlich ist der Security-Tracker der jeweiligen Distribution.</p>
+<pre>uname -r
+# Ubuntu / Debian: ist der Fix im installierten Paket?
+apt changelog linux-image-$(uname -r) 2&gt;/dev/null | grep -m1 CVE-2026-98432
+# Läuft der gepatchte Kernel auch?
+sudo needrestart -k
+# Proxmox VE
+pveversion -v | grep -E 'proxmox-kernel|pve-kernel'</pre>
+</section>
+
+<section id="chronik">
+  <h2>Chronik</h2>
+  <ol class="tl">
+    <li><time datetime="2016">2016</time>Der fehlerhafte Code kommt mit Kernel 4.4 in den Mainline-Kernel.</li>
+    <li><time datetime="2026-10-15">15. Oktober 2026</time>Das Linux-Kernel-CVE-Team veröffentlicht CVE-2026-98432 zusammen mit dem Fix.</li>
+    <li><time datetime="2026-10-27">27. Oktober 2026</time>Anthropic, die Entdecker, zeigen unter bestimmten Bedingungen eine Rechteausweitung aus der Ferne.</li>
+    <li><time datetime="2026-10-30">30. Oktober 2026</time>Die Lücke bekommt einen Namen und diese Seite.</li>
+  </ol>
+</section>
+
+<section id="faq">
+  <h2>Fragen</h2>
+  <details><summary>Warum „Gnadenlos“?</summary><p>Die RCU-Grace-Period ist die Gnadenfrist, die freizugebender Speicher abwarten muss, bis kein Leser ihn mehr hält. Hier wird sie übersprungen.</p></details>
+  <details><summary>Hilft eine Firewall?</summary><p>Nur für Ports, die ohnehin nicht erreichbar sein müssen. Jeder Dienst, der TCP über IPv4 annimmt, ist Angriffsfläche. Die eigentliche Maßnahme ist das Kernel-Update mit Reboot.</p></details>
+  <details><summary>Was gehört in die Dokumentation?</summary><p>Betroffene Systeme, laufende Kernel-Version vor und nach dem Update, Patch-Datum und Reboot-Nachweis. Live-Patching ersetzt den Nachweis nur, wenn der Livepatch diese CVE ausdrücklich abdeckt.</p></details>
+</section>
+
+</main>
+
+<footer class="wrap">
+  <p>Patchen, neu starten, prüfen.</p>
+</footer>
+
+<script>
+(function(){
+  const fixed={"6.12":113,"6.18":56,"7.2":10};
+  const out=document.getElementById('verdict'), inp=document.getElementById('kv');
+  function say(cls,title,text){out.innerHTML='<span class="v '+cls+'"></span><span></span>';
+    out.firstChild.textContent=title; out.lastChild.textContent=text;}
+  function judge(){
+    const m=inp.value.trim().match(/^(\d+)\.(\d+)(?:\.(\d+))?(?:-rc(\d+))?/);
+    if(!m){say('bad','Keine Kernel-Version erkannt.','Bitte die Ausgabe von uname -r einfügen.');return;}
+    const maj=+m[1],min=+m[2],pat=m[3]?+m[3]:0,rc=m[4]?+m[4]:null,key=maj+'.'+min,v=maj*1000+min;
+    if(v<4004){say('ok','Nicht betroffen.','Älter als 4.4, der Fehler ist hier noch nicht enthalten. Aktuell ist dieser Kernel trotzdem nicht.');return;}
+    if(key==='7.3'){ if(rc===null||rc>=7){say('ok','Upstream behoben.','7.3-rc7 oder neuer enthält den Fix.');}
+      else{say('bad','Betroffen.','7.3-rc'+rc+' liegt vor dem Fix in rc7.');} return;}
+    if(v>7003){say('ok','Upstream behoben.','Neuer als 7.3, der Fix ist enthalten.');return;}
+    if(key in fixed){ if(pat>=fixed[key]){say('ok','Upstream behoben.',key+'.'+fixed[key]+' oder neuer. Mit needrestart -k prüfen, ob dieser Kernel auch läuft.');}
+      else{say('bad','Betroffen.','Der Fix kam mit '+key+'.'+fixed[key]+', hier läuft '+key+'.'+pat+'.');} return;}
+    say('bad','Unklar.','Für '+key+' gibt es keinen Upstream-Fix in einer stabilen Serie. Bei einem Distributionskernel entscheidet der Security-Tracker der Distribution.');
+  }
+  document.getElementById('go').addEventListener('click',judge);
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')judge();});
+})();
+</script>
+</body>
+</html>
