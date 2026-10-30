@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GNADENLOS – CVE-2026-98432</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=UnifrakturMaguntia&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F7F0FB; --ink:#22102F; --muted:#5E4A6E; --gold:#9A6B00; --gold-hi:#C9921A;
+  --blood:#A11D2B; --panel:#EDE0F5; --line:#CBB6DA; --code-bg:#22102F; --code-ink:#F3E6FF;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#180826; --ink:#F3E6FF; --muted:#BBA6CC; --gold:#E7B640; --gold-hi:#FFD56A;
+    --blood:#FF5A68; --panel:#25103A; --line:#47295F; --code-bg:#0E0418; --code-ink:#F3E6FF;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#180826; --ink:#F3E6FF; --muted:#BBA6CC; --gold:#E7B640; --gold-hi:#FFD56A;
+  --blood:#FF5A68; --panel:#25103A; --line:#47295F; --code-bg:#0E0418; --code-ink:#F3E6FF;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font:1.15rem/1.6 "EB Garamond",Garamond,"Times New Roman",serif;}
+a{color:var(--gold)}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--gold-hi);outline-offset:3px}
+.wrap{max-width:46rem;margin:0 auto;padding:0 1.25rem}
+.frak{font-family:UnifrakturMaguntia,"Old English Text MT",serif;font-weight:400}
+code,pre,.mono{font-family:"JetBrains Mono",ui-monospace,Menlo,monospace;font-size:.85em}
+
+.hero{text-align:center;padding:3.5rem 1.25rem 2.5rem;
+  background:radial-gradient(ellipse at 50% 30%, #6B2A9A 0%, #2A0B40 60%, #12041D 100%);color:#F3E6FF;}
+.hero svg{width:min(17rem,70vw);height:auto;display:block;margin:0 auto;
+  filter:drop-shadow(0 0 2.2rem rgba(231,182,64,.35));animation:fall 2.4s cubic-bezier(.3,1.5,.5,1) both}
+@keyframes fall{from{transform:translateY(-2.5rem) rotate(-8deg);opacity:0}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.hero svg{animation:none}}
+.hero h1{font-size:clamp(3.4rem,13vw,7.5rem);line-height:1;margin:1.2rem 0 .3rem;
+  background:linear-gradient(180deg,#FFE38A,#D4A21E 55%,#8A5C00);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero .cve{font-family:"JetBrains Mono",monospace;letter-spacing:.06em;color:#E8D3F7;margin:0}
+.hero .tag{font-style:italic;font-size:1.45rem;margin:1.4rem auto 0;max-width:32rem}
+.scores{display:flex;flex-wrap:wrap;justify-content:center;gap:.8rem;margin:2rem 0 0;padding:0;list-style:none}
+.scores li{border:1px solid rgba(231,182,64,.55);border-radius:.4rem;padding:.6rem 1rem;min-width:9rem}
+.scores b{display:block;font-size:2rem;line-height:1.1;color:#FFE38A}
+.scores span{font-size:.95rem;color:#D9C3EA}
+
+section{padding:2.8rem 0;border-bottom:1px solid var(--line)}
+h2{font-family:UnifrakturMaguntia,"Old English Text MT",serif;font-weight:400;font-size:2.4rem;margin:0 0 1rem;color:var(--gold)}
+p{margin:0 0 1rem}
+.small{font-size:1rem;color:var(--muted)}
+
+pre{background:var(--code-bg);color:var(--code-ink);padding:1rem 1.1rem;border-radius:.4rem;overflow-x:auto;line-height:1.5}
+
+.checker{background:var(--panel);border:1px solid var(--line);border-radius:.5rem;padding:1.2rem}
+.checker label{display:block;font-weight:600;margin-bottom:.4rem}
+.row{display:flex;gap:.6rem;flex-wrap:wrap}
+.checker input{flex:1 1 14rem;font:inherit;font-family:"JetBrains Mono",monospace;font-size:1rem;
+  padding:.6rem .7rem;border:1px solid var(--line);border-radius:.35rem;background:var(--bg);color:var(--ink)}
+button{font:inherit;font-weight:600;padding:.6rem 1.1rem;border-radius:.35rem;border:0;cursor:pointer;
+  background:var(--gold);color:#1A0828}
+#verdict{margin-top:1rem;min-height:1.6em}
+#verdict .v{font-family:UnifrakturMaguntia,serif;font-size:1.6rem;display:block}
+.bad{color:var(--blood)} .ok{color:var(--gold)}
+
+ol.tl{list-style:none;padding:0;margin:0;border-left:3px solid var(--gold);}
+ol.tl li{position:relative;padding:0 0 1.3rem 1.4rem}
+ol.tl li::before{content:"";position:absolute;left:-.55rem;top:.45rem;width:.8rem;height:.8rem;border-radius:50%;background:var(--gold)}
+ol.tl time{font-family:"JetBrains Mono",monospace;font-size:.9rem;color:var(--muted);display:block}
+
+.merch{display:grid;grid-template-columns:repeat(auto-fit,minmax(13rem,1fr));gap:1.4rem}
+.item h3{margin:0 0 .2rem;font-size:1.25rem}
+.item .price{font-family:"JetBrains Mono",monospace;color:var(--blood);font-size:.95rem}
+.indulgence{margin-top:2rem;border:3px double var(--gold);padding:1.5rem;text-align:center;border-radius:.3rem}
+.indulgence .frak{font-size:1.9rem;line-height:1.25;color:var(--gold)}
+
+details{border-bottom:1px solid var(--line);padding:.7rem 0}
+summary{cursor:pointer;font-weight:600}
+details p{margin:.6rem 0 0}
+.hymn{font-style:italic;white-space:pre-line;margin:.6rem 0 0;padding-left:1rem;border-left:2px solid var(--gold)}
+
+footer{padding:2.5rem 0 3rem;text-align:center;color:var(--muted);font-size:1rem}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <svg viewBox="0 0 400 400" role="img" aria-label="Logo: ein zerbrochener, fallender Heiligenschein über einem TCP-Handshake, dessen letztes ACK ins Leere läuft">
+    <defs>
+      <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFE38A"/><stop offset=".45" stop-color="#D4A21E"/><stop offset="1" stop-color="#7A5200"/></linearGradient>
+      <radialGradient id="glow" cx=".5" cy=".42" r=".55"><stop offset="0" stop-color="#7B2FB0" stop-opacity=".9"/><stop offset="1" stop-color="#2A0B40"/></radialGradient>
+    </defs>
+    <circle cx="200" cy="200" r="196" fill="url(#glow)" stroke="url(#gold)" stroke-width="8"/>
+    <g stroke="#D4A21E" stroke-opacity=".35" stroke-width="3"><line x1="200" y1="40" x2="200" y2="80"/><line x1="290" y1="65" x2="270" y2="100"/><line x1="110" y1="65" x2="130" y2="100"/><line x1="345" y1="135" x2="310" y2="150"/><line x1="55" y1="135" x2="90" y2="150"/></g>
+    <g transform="rotate(-14 200 130)">
+      <path d="M118 132 A82 26 0 0 1 192 106" fill="none" stroke="url(#gold)" stroke-width="15" stroke-linecap="round"/>
+      <path d="M208 106 A82 26 0 0 1 282 132 A82 26 0 0 1 225 157" fill="none" stroke="url(#gold)" stroke-width="15" stroke-linecap="round"/>
+      <path d="M196 158 A82 26 0 0 1 118 132" fill="none" stroke="url(#gold)" stroke-width="15" stroke-linecap="round" stroke-dasharray="6 13" opacity=".55"/>
+    </g>
+    <path d="M199 100 l7 -14 l-2 12 l9 -6" fill="none" stroke="#FFE38A" stroke-width="3" stroke-linecap="round"/>
+    <g stroke-width="7" stroke-linecap="round" fill="none">
+      <path d="M110 215 H280" stroke="#F3E6FF"/><path d="M268 203 L284 215 L268 227" stroke="#F3E6FF"/>
+      <path d="M290 255 H120" stroke="#F3E6FF"/><path d="M132 243 L116 255 L132 267" stroke="#F3E6FF"/>
+      <path d="M110 295 H280" stroke="#E0394A" stroke-dasharray="14 12"/><path d="M268 283 L284 295 L268 307" stroke="#E0394A"/>
+    </g>
+  </svg>
+  <h1 class="frak">Gnadenlos</h1>
+  <p class="cve">CVE-2026-98432</p>
+  <p class="tag">Keine Gnadenfrist. Keine Gnade.<br>Die Schwachstelle, die Ihr Kernel seit 2016 im Herzen trägt.</p>
+  <ul class="scores">
+    <li><b>9.8</b><span>CVSS laut CVE-Record</span></li>
+    <li><b>5.9</b><span>CVSS laut Red Hat</span></li>
+    <li><b>∞</b><span>CVSS laut unserer Marketingabteilung</span></li>
+  </ul>
+</header>
+
+<main class="wrap">
+
+<section id="was">
+  <h2>Was ist geschehen?</h2>
+  <p>Im IPv4-TCP-Handshake des Linux-Kernels werden die IP-Optionen einer Request-Socket (<code>inet_opt</code>, <code>ireq_opt</code>) freigegeben, ohne das Ende der RCU-Grace-Period abzuwarten. Laufen SYN-ACK-Retransmit und die Migration der Request-Socket gleichzeitig, greift ein Codepfad auf bereits freigegebenen Speicher zu. Ein klassischer Use-after-free, ausgelöst über das Netzwerk, ohne Authentifizierung.</p>
+  <p>Im besten Fall: Kernel-Panic. Im schlechtesten Fall wurde unter Laborbedingungen Codeausführung mit Root-Rechten demonstriert. Der Kernel hat schlicht vergessen, Gnade walten zu lassen – und wir haben daraus eine Marke gemacht.</p>
+  <p class="small">Normale IPv6-Verbindungen sind nicht auf dieselbe Weise betroffen; für einen verwandten IPv6-Sonderfall ist ein separater Fix angekündigt.</p>
+</section>
+
+<section id="pruefen">
+  <h2>Bin ich verdammt?</h2>
+  <p>Upstream gefixt in 6.12.113, 6.18.56, 7.2.10 und 7.3-rc7. Eingeführt mit Kernel 4.4. Wenn Ihr Server zwischen diesen beiden Ereignissen gebootet wurde, beten Sie.</p>
+  <div class="checker">
+    <label for="kv">Ausgabe von <code>uname -r</code></label>
+    <div class="row">
+      <input id="kv" placeholder="z. B. 6.12.110-amd64" autocomplete="off" spellcheck="false">
+      <button id="go" type="button">Urteil verkünden</button>
+    </div>
+    <div id="verdict" aria-live="polite"></div>
+  </div>
+  <p class="small" style="margin-top:1rem">Distributionen backporten Fixes in Kernel, deren Versionsnummer nichts davon verrät. Das Orakel oben kennt nur Upstream. Die Wahrheit steht im Security-Tracker Ihrer Distribution:</p>
+<pre>uname -r
+# Ubuntu / Debian
+apt changelog linux-image-$(uname -r) 2&gt;/dev/null | grep -m1 CVE-2026-98432
+# Läuft schon der gepatchte Kernel, oder nur installiert?
+sudo needrestart -k
+# Proxmox VE
+pveversion -v | grep -E 'proxmox-kernel|pve-kernel'</pre>
+</section>
+
+<section id="chronik">
+  <h2>Die Passion</h2>
+  <ol class="tl">
+    <li><time datetime="2016">2016</time>Kernel 4.4 erscheint. Niemand ahnt etwas. Die Welt ist jung, Ubuntu 16.04 noch nicht einmal released.</li>
+    <li><time datetime="2026-10-15">15. Oktober 2026</time>Das Linux-Kernel-CVE-Team veröffentlicht CVE-2026-98432 samt Fix. Ein Name? Fehlanzeige. Skandal.</li>
+    <li><time datetime="2026-10-27">27. Oktober 2026</time>Anthropic, die Entdecker, demonstrieren unter bestimmten Bedingungen Root aus der Ferne. Hoster verschicken nervöse Rundmails.</li>
+    <li><time datetime="2026-10-30">30. Oktober 2026</time>Diese Website entsteht. Endlich hat das Kind einen Namen, ein Logo und einen Merch-Shop.</li>
+  </ol>
+</section>
+
+<section id="shop">
+  <h2>Devotionalien</h2>
+  <div class="merch">
+    <div class="item"><h3>Hoodie „Freed but not forgotten“</h3><p class="small">Violett, mit Goldprägung. Ärmel fallen nach Benutzung ab.</p><span class="price">49,00 € + Reboot</span></div>
+    <div class="item"><h3>RCU-Rosenkranz</h3><p class="small">33 Perlen, eine pro Grace-Period, die Ihr Kernel nicht abgewartet hat.</p><span class="price">19,98 €</span></div>
+    <div class="item"><h3>SYN-Weihrauch</h3><p class="small">Duftnote „Kernel-Panic am Freitagnachmittag“. Löst Change-Freeze-Angst aus.</p><span class="price">9,80 €</span></div>
+  </div>
+  <div class="indulgence">
+    <p class="frak">Ablassbrief für ungepatchte Server</p>
+    <p>„Sobald der Kernel im Reboot springt, die Seele aus dem Fegefeuer springt.“</p>
+    <p class="small">Ablass gilt ausschließlich in Verbindung mit tatsächlich eingespieltem Kernel-Update und erfolgtem Neustart. Der Brief selbst wirkt nicht. Hat er nie.</p>
+    <button type="button" onclick="this.textContent='Abgelehnt. Bitte patchen.'">Ablass erwerben</button>
+  </div>
+</section>
+
+<section id="faq">
+  <h2>Häufig gestellte Klagen</h2>
+  <details><summary>Braucht ein Use-after-free wirklich eine eigene Website?</summary><p>Heartbleed hatte eine. Wir sind nicht weniger wert.</p></details>
+  <details><summary>Warum „Gnadenlos“?</summary><p>Der Kernel gibt Speicher frei, bevor die RCU-Grace-Period – die Gnadenfrist – abgelaufen ist. Ohne Gnadenfrist ist man gnadenlos. Wir haben drei Meetings dafür gebraucht.</p></details>
+  <details><summary>Gibt es eine Hymne?</summary><p class="hymn">O Haupt voll SYN und Wunden,
+die Option ist längst frei,
+die Grace-Period verschwunden,
+der Pointer zeigt auf Brei.</p></details>
+  <details><summary>Reicht es, die Firewall dichtzumachen?</summary><p>Nur, wenn Ihr Server keine TCP-Verbindungen mehr annehmen soll. Dann ist er aber auch ein sehr teurer Briefbeschwerer.</p></details>
+  <details><summary>Kann ich meinem Auditor diese Seite vorlegen?</summary><p>Lieber nicht. Legen Sie ihm Kernel-Versionen, Patch-Datum und Reboot-Nachweis vor. Auditoren haben keinen Humor, aber Checklisten.</p></details>
+</section>
+
+</main>
+
+<footer class="wrap">
+  <p>Diese Seite ist Satire. Die Schwachstelle nicht.<br><b>Patchen. Rebooten. Prüfen.</b></p>
+</footer>
+
+<script>
+(function(){
+  const fixed={"6.12":113,"6.18":56,"7.2":10};
+  const out=document.getElementById('verdict'), inp=document.getElementById('kv');
+  function say(cls,title,text){out.innerHTML='<span class="v '+cls+'"></span><span></span>';
+    out.firstChild.textContent=title; out.lastChild.textContent=text;}
+  function judge(){
+    const raw=inp.value.trim();
+    const m=raw.match(/^(\d+)\.(\d+)(?:\.(\d+))?(?:-rc(\d+))?/);
+    if(!m){say('bad','Ketzerei!','Das ist keine Kernel-Version. Bitte die Ausgabe von uname -r einfügen.');return;}
+    const maj=+m[1],min=+m[2],pat=m[3]?+m[3]:0,rc=m[4]?+m[4]:null,key=maj+'.'+min;
+    const v=maj*1000+min;
+    if(v<4004){say('ok','Zu alt, um zu sündigen.','Vor 4.4 eingeführt? Nein. Betroffen von dieser Lücke? Nein. Betroffen von hundert anderen? Mit an Sicherheit grenzender Wahrscheinlichkeit.');return;}
+    if(key==='7.3'){ if(rc===null||rc>=7){say('ok','Erlöst.','7.3-rc7 oder neuer enthält den Fix. Jetzt noch rebooten, falls noch nicht geschehen.');}
+      else{say('bad','Verdammt.','7.3-rc'+rc+' liegt vor dem Fix in rc7.');} return;}
+    if(v>7003){say('ok','Erlöst.','Neuer als 7.3 – der Fix ist enthalten.');return;}
+    if(key in fixed){ if(pat>=fixed[key]){say('ok','Erlöst.','Upstream '+key+'.'+fixed[key]+' oder neuer. Läuft der Kernel auch wirklich? needrestart -k fragen.');}
+      else{say('bad','Verdammt.','Upstream-Fix kam mit '+key+'.'+fixed[key]+'. Sie laufen auf '+key+'.'+pat+'. Kein Ablass ohne Update.');} return;}
+    say('bad','Fegefeuer.','Für '+key+' gibt es keinen Upstream-Fix in einer stabilen Serie. Distro-Kernel? Dann entscheidet allein der Security-Tracker Ihrer Distribution über Ihr Seelenheil.');
+  }
+  document.getElementById('go').addEventListener('click',judge);
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')judge();});
+})();
+</script>
+</body>
+</html>
