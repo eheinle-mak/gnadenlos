@@ -38,14 +38,14 @@ h1,h2,.serif{font-family:Newsreader,Georgia,"Times New Roman",serif;font-weight:
 code,pre{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;font-size:.88em}
 
 .hero{padding:3.5rem 0 2.5rem;border-bottom:1px solid var(--line)}
-.hero .wrap{display:grid;grid-template-columns:9rem 1fr;gap:1.8rem;align-items:center}
+.hero .brand{display:grid;grid-template-columns:9rem 1fr;gap:1.8rem;align-items:center}
 .hero svg{width:100%;height:auto}
 .hero h1{font-size:clamp(2.6rem,8vw,4rem);line-height:1.05;margin:0;letter-spacing:.01em}
 .hero .cve{margin:.3rem 0 0;color:var(--muted)}
 .hero .tag{font-family:Newsreader,Georgia,serif;font-style:italic;font-size:1.3rem;margin:1rem 0 0}
-@media (max-width:34rem){.hero .wrap{grid-template-columns:1fr}.hero svg{width:8rem}}
+@media (max-width:34rem){.hero .brand{grid-template-columns:1fr}.hero svg{width:8rem}}
 
-.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(9.5rem,1fr));gap:1rem;margin:2rem 0 0}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(9.5rem,1fr));gap:1rem;margin-top:2rem}
 .facts div{border-left:3px solid var(--gold);padding-left:.8rem}
 .facts b{display:block;font-family:Newsreader,Georgia,serif;font-size:1.7rem;line-height:1.2}
 .facts span{font-size:.92rem;color:var(--muted)}
@@ -79,7 +79,7 @@ footer{padding:2.2rem 0 3rem;color:var(--muted);font-size:.95rem}
 <body>
 
 <header class="hero">
-  <div class="wrap">
+  <div class="wrap brand">
     <svg viewBox="0 0 400 400" role="img" aria-label="Logo: zerbrochener Heiligenschein über einem TCP-Handshake, dessen letztes ACK ins Leere läuft">
       <defs>
         <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFE38A"/><stop offset=".45" stop-color="#D4A21E"/><stop offset="1" stop-color="#7A5200"/></linearGradient>
