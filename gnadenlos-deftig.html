@@ -87,6 +87,8 @@ details p{margin:.6rem 0 0}
 .hymn{font-style:italic;white-space:pre-line;margin:.6rem 0 0;padding-left:1rem;border-left:2px solid var(--gold)}
 
 footer{padding:2.5rem 0 3rem;text-align:center;color:var(--muted);font-size:1rem}
+.callout{border-left:4px solid var(--blood);background:var(--panel);padding:.8rem 1rem;border-radius:.3rem;margin-top:1.2rem}
+h3{font-size:1.1rem;margin:1.4rem 0 .5rem}
 </style>
 </head>
 <body>
@@ -116,7 +118,7 @@ footer{padding:2.5rem 0 3rem;text-align:center;color:var(--muted);font-size:1rem
   <p class="tag">Keine Gnadenfrist. Keine Gnade.<br>Die Schwachstelle, die Ihr Kernel seit 2016 im Herzen trägt.</p>
   <ul class="scores">
     <li><b>9.8</b><span>CVSS laut CVE-Record</span></li>
-    <li><b>5.9</b><span>CVSS laut Red Hat</span></li>
+    <li><b>Critical</b><span>laut Ubuntu, seit 3. November</span></li>
     <li><b>∞</b><span>CVSS laut unserer Marketingabteilung</span></li>
   </ul>
 </header>
@@ -130,34 +132,78 @@ footer{padding:2.5rem 0 3rem;text-align:center;color:var(--muted);font-size:1rem
   <p class="small">Normale IPv6-Verbindungen sind nicht auf dieselbe Weise betroffen; für einen verwandten IPv6-Sonderfall ist ein separater Fix angekündigt.</p>
 </section>
 
+<section id="stand">
+  <h2>Wie steht es um unser Seelenheil?</h2>
+  <p class="small">Stand: 5. November 2026</p>
+  <p>Ubuntu hat die Priorität am 3. November von High auf <b>Critical</b> angehoben. Einen Patch im regulären <code>-updates</code>-Pocket gibt es für die LTS-Releases trotzdem noch nicht: Der <a href="https://ubuntu.com/security/CVE-2026-98432">Ubuntu-Tracker</a> führt 22.04, 24.04 und 26.04 weiterhin als „Vulnerable“, gefixte Kernel sind in Arbeit. Eine Ubuntu Security Notice gibt es noch nicht. Kritisch genug zum Hochstufen, aber nicht kritisch genug zum Ausliefern. Ein theologisch interessanter Zustand.</p>
+  <p>Die gefixten Kernel (<code>5.15.0-203</code>, <code>6.8.0-149</code>, <code>7.0.0-43</code>) liegen seit dem 26. und 27. Oktober in <code>-proposed</code>. Canonical testet sie dort noch auf über 2.000 zertifizierten Systemen und richtet sich ausdrücklich an alle, die eigene Kernel-Abnahmetests fahren. Für alle anderen gilt: <code>-proposed</code> in Produktion ist eine Glaubensfrage für Abenteuerlustige. Wer springen will, findet die Anleitung im <a href="https://ubuntu.com/blog/fixes-available-in-proposed-pocket-for-cve-2026-98432">Canonical-Blog</a>. Ubuntu 26.10 hat <code>7.3.0-10.10</code> bereits in <code>-updates</code>; für 20.04 und älter steht der Fix noch aus.</p>
+  <p>Andere Distributionen sind weiter: Debian, RHEL 8 bis 10, AlmaLinux, Oracle Linux, Amazon Linux und SLES 15 SP7/16 liefern bereits gefixte Kernel aus.</p>
+  <div class="callout"><b>Die Apokalypse lässt auf sich warten.</b> Soweit bekannt, ist noch nicht das ganze Internet gerootet. Anthropic hat seinen Exploit nicht veröffentlicht, und im KEV-Katalog der CISA stand die CVE am 4. November nicht. Seit dem 2. und 3. November wird allerdings mutmaßliches Scanning auf Port 443 über MPTCP beobachtet, und auf GitHub tauchen erste Race-Trigger und DoS-PoCs auf. Die Reiter sind also noch nicht da, aber man hört schon Hufgetrappel.</div>
+</section>
+
 <section id="pruefen">
   <h2>Bin ich verdammt?</h2>
-  <p>Upstream gefixt in 6.12.113, 6.18.56, 7.2.10 und 7.3-rc7. Eingeführt mit Kernel 4.4. Wenn Ihr Server zwischen diesen beiden Ereignissen gebootet wurde, beten Sie.</p>
+  <p>Upstream behoben in 5.10.272, 5.15.223, 6.1.190, 6.6.159, 6.12.113, 6.18.56, 7.2.10 und 7.3. Eingeführt mit Kernel 4.4. Die Prüfung erkennt außerdem Ubuntus <code>-generic</code>-Kernel. Wenn Ihr Server dazwischen liegt, beten Sie.</p>
   <div class="checker">
     <label for="kv">Ausgabe von <code>uname -r</code></label>
     <div class="row">
-      <input id="kv" placeholder="z. B. 6.12.110-amd64" autocomplete="off" spellcheck="false">
+      <input id="kv" placeholder="z. B. 6.8.0-148-generic" autocomplete="off" spellcheck="false">
       <button id="go" type="button">Urteil verkünden</button>
     </div>
     <div id="verdict" aria-live="polite"></div>
   </div>
-  <p class="small" style="margin-top:1rem">Distributionen backporten Fixes in Kernel, deren Versionsnummer nichts davon verrät. Das Orakel oben kennt nur Upstream. Die Wahrheit steht im Security-Tracker Ihrer Distribution:</p>
+  <p class="small" style="margin-top:1rem">Distributionen backporten Fixes in Kernel, deren Versionsnummer das nicht verrät. Verbindlich ist der Security-Tracker der jeweiligen Distribution.</p>
 <pre>uname -r
-# Ubuntu / Debian
+# Ubuntu / Debian: ist der Fix im installierten Paket?
 apt changelog linux-image-$(uname -r) 2&gt;/dev/null | grep -m1 CVE-2026-98432
-# Läuft schon der gepatchte Kernel, oder nur installiert?
+# Läuft der gepatchte Kernel auch?
 sudo needrestart -k
 # Proxmox VE
 pveversion -v | grep -E 'proxmox-kernel|pve-kernel'</pre>
 </section>
 
+<section id="mitigation">
+  <h2>Exorzismus für Zwischendurch</h2>
+  <p>Der Angreifer braucht IPv4-Optionen (Record Route oder Timestamp) im SYN. Legitimer TCP-Verkehr trägt praktisch nie IPv4-Optionen; TCP-Optionen wie Timestamps und Window Scaling sind etwas anderes und bleiben unberührt, ebenso IPv6. Die Regel verwirft deshalb eingehende IPv4-TCP-Pakete, deren IP-Header länger als 20 Byte ist. Red Hat und Ubuntu sind sich einig: Das senkt das Risiko, verhindert die Ausnutzung aber nicht vollständig. Ein Exorzismus, kein Wunder.</p>
+  <h3>nftables</h3>
+<pre>sudo nft -f - &lt;&lt;'EOF'
+table ip cve_2026_98432 {
+  chain prerouting {
+    type filter hook prerouting priority -300; policy accept;
+    meta l4proto tcp ip hdrlength &gt; 5 counter drop
+  }
+}
+EOF
+sudo nft list table ip cve_2026_98432   # Counter zeigt Drops
+# entfernen (nach Reboot in gefixten Kernel)
+sudo nft delete table ip cve_2026_98432</pre>
+  <h3>iptables (raw-Tabelle, vor Connection Tracking)</h3>
+<pre>sudo iptables -t raw -I PREROUTING -p tcp -m u32 --u32 '0&gt;&gt;24&amp;0x0f=6:15' \
+  -m comment --comment CVE-2026-98432 -j DROP
+sudo iptables -t raw -L PREROUTING -n -v   # Counter zeigt Drops
+# entfernen
+sudo iptables -t raw -D PREROUTING -p tcp -m u32 --u32 '0&gt;&gt;24&amp;0x0f=6:15' \
+  -m comment --comment CVE-2026-98432 -j DROP</pre>
+  <p>Beide Regeln hängen an <code>prerouting</code> und erfassen damit auch Pakete, die der Host an Container weiterroutet. Gebridgter Verkehr zwischen Containern auf demselben Host läuft vorbei, und Container mit eigenem Netzwerk-Namespace brauchen die Regel separat. Keine der Regeln überlebt einen Reboot: Wer in einen ungepatchten Kernel neu startet, muss sie erneut setzen.</p><p class="small">Das <code>u32</code>-Match fehlt in den Kerneln von RHEL 9 und 10, dort nur nft verwenden. Nicht einsetzen, wo CIPSO-Labels genutzt werden, die stecken nämlich genau in IPv4-Optionen. Eine eigene nft-Tabelle wird von iptables-restore, ufw oder Firewall-Managern, die nur die iptables-Regeln verwalten, nicht angefasst.</p>
+</section>
+
 <section id="chronik">
   <h2>Die Passion</h2>
   <ol class="tl">
-    <li><time datetime="2016">2016</time>Kernel 4.4 erscheint. Niemand ahnt etwas. Die Welt ist jung, Ubuntu 16.04 noch nicht einmal released.</li>
-    <li><time datetime="2026-10-15">15. Oktober 2026</time>Das Linux-Kernel-CVE-Team veröffentlicht CVE-2026-98432 samt Fix. Ein Name? Fehlanzeige. Skandal.</li>
-    <li><time datetime="2026-10-27">27. Oktober 2026</time>Anthropic, die Entdecker, demonstrieren unter bestimmten Bedingungen Root aus der Ferne. Hoster verschicken nervöse Rundmails.</li>
-    <li><time datetime="2026-10-30">30. Oktober 2026</time>Diese Website entsteht. Endlich hat das Kind einen Namen, ein Logo und einen Merch-Shop.</li>
+    <li><time datetime="2016">2016</time>Der fehlerhafte Code kommt mit Kernel 4.4 in den Mainline-Kernel. Niemand ahnt etwas.</li>
+    <li><time datetime="2026-10-01">1. Oktober</time>Eric Dumazet postet den Fix; gemeldet hat den Bug Xinyang Ge von Anthropic.</li>
+    <li><time datetime="2026-10-11">11. Oktober</time>Linux 7.2.10 und 6.18.56 enthalten den Fix, 7.3-rc7 folgt.</li>
+    <li><time datetime="2026-10-15">15. Oktober</time>Der CVE-Record wird veröffentlicht. 6.12.113, 6.6.159, 6.1.190, 5.15.223 und 5.10.272 erscheinen mit Fix. Ein Name? Fehlanzeige. Skandal.</li>
+    <li><time datetime="2026-10-18">18. Oktober</time>Linux 7.3 wird mit Fix veröffentlicht.</li>
+    <li><time datetime="2026-10-26">26./27. Oktober</time>Ubuntu legt gefixte Kernel für 22.04, 24.04 und 26.04 in <code>-proposed</code>.</li>
+    <li><time datetime="2026-10-27">27. Oktober</time>Anthropic beschreibt einen Remote-Root-Exploit für Server mit MPTCP-Listener, gebaut im eigenen Labor. Veröffentlicht wird er nicht.</li>
+    <li><time datetime="2026-10-28">28. Oktober</time>Ubuntu 26.10 bekommt <code>7.3.0-10.10</code> in <code>-updates</code>.</li>
+    <li><time datetime="2026-10-29">29. Oktober</time>Das Go-Security-Team weist darauf hin, dass Go-Programme seit Go 1.24 standardmäßig MPTCP-Listener öffnen.</li>
+    <li><time datetime="2026-10-30">30. Oktober</time>Red Hat stuft auf Critical hoch und veröffentlicht eine nftables-Mitigation.</li>
+    <li><time datetime="2026-11-01">1. November</time>Red Hat liefert gefixte Kernel für RHEL 8, 9 und 10 aus.</li>
+    <li><time datetime="2026-11-02">2. November</time>Ubuntu ergänzt eine nftables-Mitigation im Tracker. Canonical: Fixes für die LTS-Releases sind im Test.</li>
+    <li><time datetime="2026-11-03">3. November</time>Ubuntu stuft von High auf Critical hoch. Sicherheitsforscher melden mutmaßliches Scanning auf Port 443 über MPTCP. Hufgetrappel.</li>
+    <li><time datetime="2026-11-05">5. November</time>Ubuntu-LTS weiterhin ohne Patch in <code>-updates</code>. Die Lücke bekommt einen Namen und diese Seite. Endlich, mit Logo und Merch-Shop.</li>
   </ol>
 </section>
 
@@ -184,7 +230,7 @@ pveversion -v | grep -E 'proxmox-kernel|pve-kernel'</pre>
 die Option ist längst frei,
 die Grace-Period verschwunden,
 der Pointer zeigt auf Brei.</p></details>
-  <details><summary>Reicht es, die Firewall dichtzumachen?</summary><p>Nur, wenn Ihr Server keine TCP-Verbindungen mehr annehmen soll. Dann ist er aber auch ein sehr teurer Briefbeschwerer.</p></details>
+  <details><summary>Reicht es, die Firewall dichtzumachen?</summary><p>Komplett dicht nur, wenn Ihr Server ein sehr teurer Briefbeschwerer werden soll. Der Exorzismus oben ist gezielter: Er wirft nur die Pakete mit IPv4-Optionen raus. Erlösung bringt trotzdem erst der Reboot in einen gefixten Kernel.</p></details>
   <details><summary>Kann ich meinem Auditor diese Seite vorlegen?</summary><p>Lieber nicht. Legen Sie ihm Kernel-Versionen, Patch-Datum und Reboot-Nachweis vor. Auditoren haben keinen Humor, aber Checklisten.</p></details>
 </section>
 
@@ -196,23 +242,32 @@ der Pointer zeigt auf Brei.</p></details>
 
 <script>
 (function(){
-  const fixed={"6.12":113,"6.18":56,"7.2":10};
+  const M={"bad": ["Ketzerei!", "Bitte die Ausgabe von uname -r einfügen."], "old": ["Zu alt, um zu sündigen.", "Älter als 4.4, der Fehler ist hier noch nicht enthalten. Aktuell ist dieser Kernel trotzdem nicht."], "ok": ["Erlöst.", "{v} oder neuer enthält den Fix. Mit needrestart -k prüfen, ob dieser Kernel auch läuft."], "aff": ["Verdammt.", "Der Fix kam mit {v}, hier läuft {c}. Kein Ablass ohne Update."], "ubok": ["Erlöst, vorläufig.", "Ab {v} ist der Fix enthalten. Für 22.04, 24.04 und 26.04 kommt dieser Kernel derzeit nur aus -proposed."], "ubok26": ["Erlöst.", "Ab {v} ist der Fix enthalten, für 26.10 regulär aus -updates."], "ubaff": ["Verdammt.", "Ubuntu-Fix ab {v}, derzeit nur in -proposed. Bis dahin: Mitigation setzen."], "ubnone": ["Fegefeuer.", "Für diese Ubuntu-Kernellinie listet der Tracker noch keinen gefixten Kernel. Mitigation setzen und den Tracker beobachten."], "eol": ["Fegefeuer.", "Für {k} gibt es keinen Upstream-Fix in einer stabilen Serie. Bei einem Distributionskernel entscheidet der Security-Tracker der Distribution."]};
+  const fixed={"5.10":272,"5.15":223,"6.1":190,"6.6":159,"6.12":113,"6.18":56,"7.2":10};
+  const ub={"5.15.0":203,"6.8.0":149,"7.0.0":43,"7.3.0":10};
+  const ubIn=["6.17.0"];
   const out=document.getElementById('verdict'), inp=document.getElementById('kv');
-  function say(cls,title,text){out.innerHTML='<span class="v '+cls+'"></span><span></span>';
-    out.firstChild.textContent=title; out.lastChild.textContent=text;}
+  function f(s,o){return s.replace(/\{(\w)\}/g,(_,k)=>o[k]);}
+  function say(cls,key,o){const m=M[key];out.innerHTML='<span class="v '+cls+'"></span><span></span>';
+    out.firstChild.textContent=m[0]; out.lastChild.textContent=f(m[1],o||{});}
   function judge(){
     const raw=inp.value.trim();
+    const u=raw.match(/^(\d+\.\d+\.\d+)-(\d+)-generic$/);
+    if(u){
+      if(u[1] in ub){const need=ub[u[1]],v=u[1]+'-'+need;
+        if(+u[2]>=need){say('ok',u[1]==='7.3.0'?'ubok26':'ubok',{v:v});} else {say('bad','ubaff',{v:v});}
+        return;}
+      if(ubIn.includes(u[1])){say('bad','ubnone');return;}
+    }
     const m=raw.match(/^(\d+)\.(\d+)(?:\.(\d+))?(?:-rc(\d+))?/);
-    if(!m){say('bad','Ketzerei!','Das ist keine Kernel-Version. Bitte die Ausgabe von uname -r einfügen.');return;}
-    const maj=+m[1],min=+m[2],pat=m[3]?+m[3]:0,rc=m[4]?+m[4]:null,key=maj+'.'+min;
-    const v=maj*1000+min;
-    if(v<4004){say('ok','Zu alt, um zu sündigen.','Vor 4.4 eingeführt? Nein. Betroffen von dieser Lücke? Nein. Betroffen von hundert anderen? Mit an Sicherheit grenzender Wahrscheinlichkeit.');return;}
-    if(key==='7.3'){ if(rc===null||rc>=7){say('ok','Erlöst.','7.3-rc7 oder neuer enthält den Fix. Jetzt noch rebooten, falls noch nicht geschehen.');}
-      else{say('bad','Verdammt.','7.3-rc'+rc+' liegt vor dem Fix in rc7.');} return;}
-    if(v>7003){say('ok','Erlöst.','Neuer als 7.3 – der Fix ist enthalten.');return;}
-    if(key in fixed){ if(pat>=fixed[key]){say('ok','Erlöst.','Upstream '+key+'.'+fixed[key]+' oder neuer. Läuft der Kernel auch wirklich? needrestart -k fragen.');}
-      else{say('bad','Verdammt.','Upstream-Fix kam mit '+key+'.'+fixed[key]+'. Sie laufen auf '+key+'.'+pat+'. Kein Ablass ohne Update.');} return;}
-    say('bad','Fegefeuer.','Für '+key+' gibt es keinen Upstream-Fix in einer stabilen Serie. Distro-Kernel? Dann entscheidet allein der Security-Tracker Ihrer Distribution über Ihr Seelenheil.');
+    if(!m){say('bad','bad');return;}
+    const maj=+m[1],min=+m[2],pat=m[3]?+m[3]:0,rc=m[4]?+m[4]:null,key=maj+'.'+min,v=maj*1000+min;
+    if(v<4004){say('ok','old');return;}
+    if(key==='7.3'){ if(rc===null||rc>=7){say('ok','ok',{v:'7.3-rc7'});} else {say('bad','aff',{v:'7.3-rc7',c:'7.3-rc'+rc});} return;}
+    if(v>7003){say('ok','ok',{v:'7.3'});return;}
+    if(key in fixed){const fv=key+'.'+fixed[key];
+      if(pat>=fixed[key]){say('ok','ok',{v:fv});} else {say('bad','aff',{v:fv,c:key+'.'+pat});} return;}
+    say('bad','eol',{k:key});
   }
   document.getElementById('go').addEventListener('click',judge);
   inp.addEventListener('keydown',e=>{if(e.key==='Enter')judge();});
